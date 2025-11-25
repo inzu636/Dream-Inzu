@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>StarBazar Result — Neon Dark</title>
+  <meta name="description" content="Live bazar result board — mobile-first neon UI. No login. Updated manually."/>
+  <style>
+    /* ====== Base / Mobile-first ====== */
+    :root{
+      
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;}
+    body{
+       --bg:#00FF00;
+      --card:#111826;
+      --muted:#9aa4b2;
+      --neon-blue:#4da3ff;
+      --neon-green:#ff8a3d;
+      --glass:rgba(255,255,255,0.05);
+      --accent-shadow: 0 8px 24px rgba(0,224,255,0.06), inset 0 0 18px rgba(0,224,255,0.03);
+      --radius:14px;
+      margin:0;
+      background: #ffffff;
+      color:#e6f0ff;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:18px;
+      font-size:16px;
+      line-height:1.3;
+    }
+
+    /* Container */
+    .wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+
+    /* Header / Logo */
+    .header{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));backdrop-filter: blur(6px);}
+    .logo{
+      width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;
+      background: radial-gradient(circle at 20% 20%, rgba(0,224,255,0.14), transparent 15%), linear-gradient(135deg, rgba(57,255,123,0.06), rgba(0,224,255,0.06));
+      box-shadow: 0 6px 28px rgba(0,224,255,0.06), 0 0 28px rgba(57,255,123,0.02), inset 0 -6px 18px rgba(0,0,0,0.4);
+      color: white; position:relative;overflow:hidden;
+    }
+    .logo:before{
+      content:'';position:absolute;inset:0;border-radius:12px;box-shadow: 0 0 32px rgba(0,224,255,0.14), 0 0 14px rgba(57,255,123,0.06);
+      mix-blend-mode:screen;pointer-events:none;}
+    .brand{display:flex;flex-direction:column}
+    .brand .title{font-weight:900;letter-spacing:0.8px;font-size:22px;text-align:center;color:#000;}
+    .brand .subtitle{font-size:13px;color:#000;text-align:center;margin-top:2px;}
+
+    /* Grid of bazars (mobile-first: column) */
+    .bazars{display:flex;flex-direction:column;gap:12px}
+
+    .bazar-card{ padding:12px;border-radius:14px;background:#000; border:1px solid #222; position:relative;overflow:hidden;display:flex;flex-direction:column;gap:12px; box-shadow: var(--accent-shadow); transform-origin:center;opacity:0;animation:fadeIn .6s ease forwards;}
+    .bazar-card:nth-child(1){animation-delay:0.05s}
+    .bazar-card:nth-child(2){animation-delay:0.12s}
+    .bazar-card:nth-child(3){animation-delay:0.18s}
+    .bazar-card:nth-child(4){animation-delay:0.24s}
+    .bazar-card:nth-child(5){animation-delay:0.30s}
+    .bazar-card:nth-child(6){animation-delay:0.36s}
+    .bazar-card:nth-child(7){animation-delay:0.42s}
+    .bazar-card:nth-child(8){animation-delay:0.48s}
+    .bazar-card:nth-child(9){animation-delay:0.54s}
+    .bazar-card:nth-child(10){animation-delay:0.60s}
+
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+    /* neon animated border */
+    .bazar-card:after{
+      content:'';position:absolute;inset:-2px;border-radius:16px;padding:2px;background:linear-gradient(90deg, rgba(0,224,255,0.12), rgba(57,255,123,0.08), rgba(0,224,255,0.12));
+      z-index:0;filter:blur(10px);opacity:0.85;mix-blend-mode:screen;pointer-events:none;animation:neonBorder 3.2s linear infinite;
+    }
+    @keyframes neonBorder{0%{transform:rotate(0deg)}50%{transform:rotate(180deg)}100%{transform:rotate(360deg)}}
+
+    .bazar-content{position:relative;z-index:1;display:flex;flex-direction:column;gap:10px}
+    .bazar-row{display:flex;justify-content:space-between;align-items:center}
+    .bazar-name{font-weight:700;font-size:16px}
+    .bazar-times{font-size:13px;color:var(--muted)}
+
+    .timer{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;font-weight:700;background: linear-gradient(0deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);display:inline-block}
+    .label{font-size:12px;color:var(--muted)}
+
+    /* Result box */
+    .result-wrap{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+    .result-title{font-size:13px;color:var(--muted)}
+    .result-box{
+      min-width:120px;padding:12px 18px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:26px;letter-spacing:1px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04);
+      box-shadow: 0 0 30px rgba(0,224,255,0.06), inset 0 -6px 20px rgba(0,0,0,0.5);color:var(--neon-blue);
+      transition:transform .25s ease, box-shadow .25s ease;
+    }
+    .result-box.live{color:var(--neon-green);text-shadow: 0 0 22px rgba(57,255,123,0.24), 0 0 42px rgba(0,224,255,0.06);animation:glowPulse 1.4s ease-in-out infinite}
+    @keyframes glowPulse{0%{transform:scale(1);box-shadow:0 0 6px rgba(57,255,123,0.06)}50%{transform:scale(1.04);box-shadow:0 0 40px rgba(57,255,123,0.18)}100%{transform:scale(1);box-shadow:0 0 6px rgba(57,255,123,0.06)}}
+
+    /* small meta row */
+    .meta{display:flex;gap:8px;align-items:center}
+    .pill{padding:6px 8px;border-radius:999px;background:var(--glass);font-size:12px;color:var(--muted);border:1px solid rgba(255,255,255,0.02)}
+
+    /* Instructions box */
+    .instructions{padding:12px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);color:var(--muted)}
+    .instructions h3{margin:0 0 8px 0;color:var(--neon-blue)}
+    .instructions ul{margin:0;padding-left:18px}
+
+    /* Footer */
+    footer{padding:12px;border-radius:12px;text-align:center;color:var(--muted);font-size:13px}
+
+    /* Desktop adjustments */
+    @media(min-width:720px){
+      .bazars{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+      body{padding:28px}
+      .wrap{gap:22px}
+    }
+    @media(min-width:1100px){
+      .bazars{grid-template-columns:repeat(3,1fr)}
+    }
+
+    /* Helpers */
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="header">
+      <div class="logo" aria-hidden>
+        ⭐
+      </div>
+      <div class="brand">
+        <div class="title">Dream Satta Result</div>
+        <div class="subtitle">Live Bazar Results — No Login</div>
+      </div>
+    </header>
+
+    <!-- Bazars list: these are generated by JS but present in DOM for easy manual edits -->
+    <main class="bazars" id="bazars">
+      <!-- Cards will be injected here by JS. To edit results, change the `result` field in the `BAZARS` array in the script. -->
+    </main>
+
+    <section class="instructions">
+      <h3>How this works</h3>
+      <ul>
+        <li>This website only displays results — no registration or login required.</li>
+        <li>All results are updated manually by the website owner in the code every 1 hour.</li>
+        <li>Refresh the page to see updated results (owner must update the `result` values in the code).</li>
+        <li>Timings shown are the official bazar timings.</li>
+      </ul>
+    </section>
+
+    <footer>
+      <div>This website is only for result information. We are not connected to any betting or gambling activity.</div>
+    </footer>
+
+    <!-- Admin Panel (Simple Token-Based Access) -->
+    <section class="instructions hidden" id="admin-panel">
+      <h3>Admin Panel</h3>
+      <p style="margin:0 0 10px 0;">Enter Admin Key to Edit Results</p>
+      <input type="password" id="adminKey" placeholder="Enter admin key" style="width:100%;padding:10px;border-radius:8px;margin-bottom:10px;background:#111826;border:1px solid #1f2735;color:#9aa4b2;">
+      <button onclick="unlockAdmin()" style="padding:10px 14px;border-radius:8px;background:#b54bff;color:#000;font-weight:700;border:none;cursor:pointer;">Unlock</button>
+
+      <div id="adminEditor" style="display:none;margin-top:15px;">
+        <h3 style="margin-bottom:6px;">Update Results</h3>
+        <div id="adminFields"></div>
+        <button onclick="saveResults()" style="margin-top:12px;padding:10px 14px;border-radius:8px;background:#ff4bd8;color:#000;font-weight:700;border:none;cursor:pointer;">Save Results</button>
+      </div>
+    </section>
+
+    <script>
+      const ADMIN_KEY = "Sonu0786"; // Change this key
+
+      // Auto-unlock admin panel if correct secret is present in URL query parameter ?admin=YOUR_KEY
+      (function(){
+        try{
+          const params = new URLSearchParams(location.search);
+          const secret = params.get('admin');
+          if(secret && secret === ADMIN_KEY){
+            const panel = document.getElementById('admin-panel');
+            if(panel) panel.classList.remove('hidden');
+            const editor = document.getElementById('adminEditor');
+            if(editor) editor.style.display = 'block';
+            // make sure fields are loaded
+            setTimeout(()=>{ if(typeof loadAdminFields === 'function') loadAdminFields(); }, 60);
+          }
+        }catch(e){console.warn('admin url check failed', e)}
+      })();
+
+      function unlockAdmin(){
+        const key = document.getElementById("adminKey").value.trim();
+        if(key === ADMIN_KEY){
+          document.getElementById("adminEditor").style.display = "block";
+          loadAdminFields();
+        } else {
+          alert("Incorrect Admin Key");
+        }
+      }
+
+      function loadAdminFields(){
+        const box = document.getElementById("adminFields");
+        box.innerHTML = "";
+
+        BAZARS.forEach(b => {
+          box.innerHTML += `
+            <div style='margin-bottom:10px;'>
+              <label>${b.name}</label>
+              <input type='text' id='edit-${b.id}' value='${b.result}' style='width:100%;padding:8px;border-radius:6px;background:#111826;border:1px solid #1f2735;color:#9aa4b2;'>
+            </div>
+          `;
+        });
+      }
+
+      function saveResults(){
+        BAZARS.forEach(b => {
+          const newVal = document.getElementById(`edit-${b.id}`).value.trim();
+          b.result = newVal;
+          const resultEl = document.getElementById(`result-${b.id}`);
+          resultEl.setAttribute('data-result', newVal);
+        });
+        alert("Results Updated!");
+      }
+    </script>
+  </div>
+
+  <script>
+    /* ========= CONFIG - edit these values to update results/timings ========== */
+    const BAZARS = [
+      { id:'delhi', name:'Delhi Bazar', open:'10:00 AM', close:'11:00 AM', result:'--' },
+      { id:'kolkata', name:'Kolkata Bazar', open:'11:00 AM', close:'12:00 PM', result:'--' },
+      { id:'mumbai', name:'Mumbai Bazar', open:'1:00 PM', close:'2:00 PM', result:'--' },
+      { id:'ghaziabad', name:'Ghaziabad Bazar', open:'2:00 PM', close:'3:00 PM', result:'--' },
+      { id:'gali', name:'Gali Bazar', open:'3:00 PM', close:'4:00 PM', result:'--' },
+      { id:'disawar', name:'Disawar Bazar', open:'4:00 PM', close:'5:00 PM', result:'--' },
+      { id:'shreeganesh', name:'ShreeGanesh Bazar', open:'6:00 PM', close:'7:00 PM', result:'--' },
+      { id:'faridabad', name:'Faridabad Bazar', open:'8:00 PM', close:'9:00 PM', result:'--' },
+      { id:'rajasthan', name:'Rajasthan Bazar', open:'9:00 PM', close:'10:00 PM', result:'--' },
+      { id:'lucknow', name:'Lucknow Bazar', open:'10:00 PM', close:'11:00 PM', result:'--' },
+    ];
+
+    /* ========= Utility: parse times like '10:00 AM' -> returns a Date object for the next occurrence (today or tomorrow) ======== */
+    function parseNextOccurrence(timeStr){
+      // timeStr in form 'h:mm AM/PM' or 'hh:mm AM/PM'
+      const now = new Date();
+      const [time,ampm] = timeStr.split(' ');
+      let [h,m] = time.split(':').map(Number);
+      if(ampm.toUpperCase() === 'PM' && h!==12) h+=12;
+      if(ampm.toUpperCase() === 'AM' && h===12) h = 0;
+      const candidate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
+      // if candidate is in past or within same minute in past, schedule for next day
+      if(candidate.getTime() <= now.getTime() - 1000){
+        candidate.setDate(candidate.getDate()+1);
+      }
+      return candidate;
+    }
+
+    /* ========= Build cards ========= */
+    const bazarsContainer = document.getElementById('bazars');
+
+    BAZARS.forEach((bazar, idx) =>{
+      const card = document.createElement('article');
+      card.className = 'bazar-card';
+      card.id = `card-${bazar.id}`;
+      card.innerHTML = `
+        <div class="bazar-content">
+          <div class="bazar-row">
+            <div>
+              <div class="bazar-name">${bazar.name}</div>
+              <div class="bazar-times">${bazar.open} — ${bazar.close}</div>
+            </div>
+            <div class="meta">
+              <div class="label">Opens In</div>
+              <div class="timer" id="timer-${bazar.id}">--:--:--</div>
+            </div>
+          </div>
+
+          <div class="result-wrap">
+            <div class="result-title" id="status-${bazar.id}">Waiting...</div>
+            <div class="result-box" id="result-${bazar.id}" data-result="${bazar.result}"> ${bazar.result} </div>
+          </div>
+        </div>
+      `;
+      bazarsContainer.appendChild(card);
+
+      // setup timer
+      setupTimerFor(bazar);
+    });
+
+    /* ========= Timer logic ========= */
+    function formatTimePart(n){return String(n).padStart(2,'0')}
+
+    function setupTimerFor(bazar){
+      const timerEl = document.getElementById(`timer-${bazar.id}`);
+      const statusEl = document.getElementById(`status-${bazar.id}`);
+      const resultEl = document.getElementById(`result-${bazar.id}`);
+      let target = parseNextOccurrence(bazar.open);
+
+      // initial render
+      updateTimer();
+
+      // create individual interval
+      const intervalId = setInterval(updateTimer, 500);
+
+      function updateTimer(){
+        const now = new Date();
+        let diff = Math.max(0, target.getTime() - now.getTime());
+        if(diff <= 0){
+          // show live result
+          statusEl.textContent = 'Live Result';
+          resultEl.classList.add('live');
+          // reveal the result from data-result attribute (owner should set it in code)
+          const manual = resultEl.getAttribute('data-result') || '--';
+          resultEl.textContent = manual;
+          timerEl.textContent = '00:00:00';
+          // Since this cycle is 1-hour long, schedule next opening as next day's same time (owner updates result manually)
+          // We stop updating the 'opens in' timer until owner wants next cycle. However to keep each bazar independent, schedule next opening one day later so timer will count down for the next day's opening.
+          // Advance the next opening by 24 hours so the timer will show countdown until next opening.
+          target.setDate(target.getDate()+1);
+        } else {
+          statusEl.textContent = 'Opens In';
+          resultEl.classList.remove('live');
+          // keep the displayed result hidden or dashed until live
+          resultEl.textContent = resultEl.getAttribute('data-result') || '--';
+          const hours = Math.floor(diff / 3600000);
+          diff -= hours * 3600000;
+          const mins = Math.floor(diff / 60000);
+          diff -= mins * 60000;
+          const secs = Math.floor(diff / 1000);
+          timerEl.textContent = `${formatTimePart(hours)}:${formatTimePart(mins)}:${formatTimePart(secs)}`;
+        }
+      }
+
+    }
+
+    /* ========= Notes for Owner =========
+       - To update results: edit the 'result' property for each bazar in the BAZARS array near top of script.
+       - Example: { id:'delhi', name:'Delhi Bazar', open:'10:00 AM', close:'11:00 AM', result:'123' }
+       - Save file and refresh page to show new result when that bazar becomes live.
+       - If you'd prefer results to show instantly for testing, set the 'open' time to a minute ahead of current time.
+    ========= */
+  </script>
+<script>
+// Secret Admin URL Logic
+const params = new URLSearchParams(window.location.search);
+const secret = params.get('admin');
+
+if (secret === 'Sonu0786') {
+    const adminPanel = document.getElementById('admin-panel');
+    if (adminPanel) {
+        adminPanel.classList.remove('hidden');
+    }
+}
+</script>
+</body>
+</html>
